@@ -84,9 +84,12 @@ class BridgeContext<N> {
 
 abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
     implements BridgeObserver<N> {
-  List<N> get binds;
+  List<N> get binds => [];
 
   late final BridgeContext bridge = Bridge.of<N>(context)!;
+
+  @override
+  void message(N topic, args) {}
 
   @override
   void initState() {
