@@ -22,7 +22,7 @@ abstract class LiveData<T> with Diagnosticable {
     }
     _observers.add(observer);
     if (_observers.isNotEmpty) {
-      _active();
+      active();
     }
   }
 
@@ -32,35 +32,38 @@ abstract class LiveData<T> with Diagnosticable {
   void removeObserver(Observer observer) {
     _observers.remove(observer);
     if (_observers.isEmpty) {
-      _inactive();
+      inactive();
     }
   }
 
   ///
   /// Esse método é chamado quando tiver algum Observer na lista
   ///
-  void _active() {}
+  @protected
+  void active() {}
 
   ///
   /// Esse método é chamado quando não tiver nenhum Observer na lista
-  ///
-  void _inactive() {}
+  @protected
+  void inactive() {}
 
   ///
   /// Define o valor do LiveData
   ///
-  void _setValue(T value) {
+  @protected
+  void setValue(T value) {
     if (_value != value) {
       _value = value;
       _setReporter.report(this);
-      _notifyObservers(value);
+      notifyObservers(value);
     }
   }
 
   ///
   /// Retorna o valor do LiveData
   ///
-  T _getValue() {
+  @protected
+  T getValue() {
     _getReporter.report(this);
     return _value;
   }
@@ -68,7 +71,8 @@ abstract class LiveData<T> with Diagnosticable {
   ///
   /// Notifica todos Observer a mudança de valor
   ///
-  void _notifyObservers(T? value) {
+  @protected
+  void notifyObservers(T? value) {
     for (var observer in _observers) {
       observer.onChange();
     }

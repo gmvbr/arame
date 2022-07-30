@@ -9,10 +9,10 @@ class MutableLiveData<T> extends LiveData<T> {
   ///
   /// Define o valor do LiveData
   ///
-  set value(T value) => super._setValue(value);
+  set value(T value) => super.setValue(value);
 
   ///
   /// Retorna o valor do LiveData
   ///
-  T get value => super._getValue();
+  T get value => super.getValue();
 }
