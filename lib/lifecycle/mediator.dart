@@ -24,10 +24,11 @@ class MediatorLiveData<T> extends LiveData<T> implements Observer {
   void inactive() => controller.clear();
 
   @override
-  void onChange() => super.setValue(controller.get(_value));
+  void onChange() => super.setValue(controller.get(super.value));
 
   ///
   /// Retorna o valor do LiveData
   ///
-  T? get value => super.getValue();
+  @override
+  T get value => super.getValue();
 }

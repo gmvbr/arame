@@ -1,12 +1,13 @@
 part of 'lifecycle.dart';
 
 abstract class LiveData<T> with Diagnosticable {
-  LiveData(this._value);
+  LiveData(this.value);
 
   ///
   /// Valor do LiveData
   ///
-  T _value;
+  @protected
+  T value;
 
   ///
   /// Lista de Observer
@@ -37,6 +38,11 @@ abstract class LiveData<T> with Diagnosticable {
   }
 
   ///
+  /// Verifica se há algum Observer na lista
+  ///
+  bool hasObserver() => _observers.isNotEmpty;
+
+  ///
   /// Esse método é chamado quando tiver algum Observer na lista
   ///
   @protected
@@ -51,11 +57,11 @@ abstract class LiveData<T> with Diagnosticable {
   /// Define o valor do LiveData
   ///
   @protected
-  void setValue(T value) {
-    if (_value != value) {
-      _value = value;
+  void setValue(T newValue) {
+    if (value != newValue) {
+      value = newValue;
       _setReporter.report(this);
-      notifyObservers(value);
+      notifyObservers(newValue);
     }
   }
 
@@ -65,7 +71,7 @@ abstract class LiveData<T> with Diagnosticable {
   @protected
   T getValue() {
     _getReporter.report(this);
-    return _value;
+    return value;
   }
 
   ///
@@ -81,6 +87,6 @@ abstract class LiveData<T> with Diagnosticable {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<String>('value', _value.toString()));
+    properties.add(DiagnosticsProperty<String>('value', value.toString()));
   }
 }
