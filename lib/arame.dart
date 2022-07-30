@@ -1,3 +1,3 @@
 library arame;
 
-export './lifecycle/lifecycle.dart';
+export './src/bridge.dart';
