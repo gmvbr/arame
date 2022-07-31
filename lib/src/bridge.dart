@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 
 class Bridge<N> extends StatefulWidget {
   final Widget child;
-  const Bridge({Key? key, required this.child}) : super(key: key);
+  final List<BridgeService<N>>? services;
+
+  const Bridge({
+    Key? key,
+    required this.child,
+    this.services,
+  }) : super(key: key);
 
   static BridgeContext<N>? of<N>(BuildContext context) {
     return context
@@ -11,11 +17,67 @@ class Bridge<N> extends StatefulWidget {
   }
 
   @override
-  State<Bridge> createState() => _BridgeState();
+  State<Bridge<N>> createState() => _BridgeState<N>();
 }
 
-class _BridgeState extends State<Bridge> {
-  final BridgeContext _bridgeContext = BridgeContext();
+class _BridgeState<N> extends State<Bridge<N>> {
+  final BridgeContext<N> _bridgeContext = BridgeContext<N>();
+
+  final List<BridgeService<N>> _services = [];
+
+  void registerService(BridgeService<N> service) {
+    if (_services.contains(service)) {
+      return;
+    }
+    service._register(_bridgeContext);
+    _services.add(service);
+  }
+
+  void unregisterService(BridgeService<N> service) {
+    if (_services.contains(service)) {
+      return;
+    }
+    service._unregister(_bridgeContext);
+    _services.remove(service);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.services != null) {
+      for (BridgeService<N> service in widget.services!) {
+        registerService(service);
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant Bridge<N> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.services != widget.services) {
+      if (oldWidget.services != null) {
+        for (BridgeService<N> service in oldWidget.services!) {
+          unregisterService(service);
+        }
+      }
+      if (widget.services != null) {
+        for (BridgeService<N> service in widget.services!) {
+          registerService(service);
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.services != null) {
+      for (BridgeService<N> service in widget.services!) {
+        registerService(service);
+      }
+    }
+    _bridgeContext.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +107,29 @@ abstract class BridgeObserver<T> {
   void message(T topic, dynamic args);
 }
 
+class BridgeService<N> implements BridgeObserver<N> {
+  List<N> get binds => [];
+
+  @override
+  void message(N topic, args) {}
+
+  void _register(BridgeContext<N> bridge) {
+    for (var element in binds) {
+      bridge._registerObserver(element, this);
+    }
+  }
+
+  void _unregister(BridgeContext<N> bridge) {
+    for (var element in binds) {
+      bridge._unregisterObserver(element, this);
+    }
+  }
+}
+
 class BridgeContext<N> {
   final Map<N, List<BridgeObserver>> _map = {};
 
-  void dispose() => _map.clear();
-
-  void registerObserver(N topic, BridgeObserver<N> observer) {
+  void _registerObserver(N topic, BridgeObserver<N> observer) {
     if (_map.containsKey(topic)) {
       if (_map[topic]!.contains(observer)) {
         return;
@@ -61,7 +140,7 @@ class BridgeContext<N> {
     }
   }
 
-  void unregisterObserver(N topic, BridgeObserver<N> observer) {
+  void _unregisterObserver(N topic, BridgeObserver<N> observer) {
     if (_map.containsKey(topic)) {
       _map[topic]!.remove(observer);
       if (_map[topic]!.isEmpty) {
@@ -80,6 +159,10 @@ class BridgeContext<N> {
     }
     return count;
   }
+
+  void dispose() {
+    _map.clear();
+  }
 }
 
 abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
@@ -94,7 +177,7 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
   @override
   void initState() {
     for (var element in binds) {
-      bridge.registerObserver(element, this);
+      bridge._registerObserver(element, this);
     }
     super.initState();
   }
@@ -102,7 +185,7 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
   @override
   void dispose() {
     for (var element in binds) {
-      bridge.unregisterObserver(element, this);
+      bridge._unregisterObserver(element, this);
     }
     super.dispose();
   }
