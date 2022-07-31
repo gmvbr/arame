@@ -169,17 +169,19 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
     implements BridgeObserver<N> {
   List<N> get binds => [];
 
-  late final BridgeContext bridge = Bridge.of<N>(context)!;
+  late final BridgeContext bridge;
 
   @override
   void message(N topic, args) {}
 
   @override
   void initState() {
+    super.initState();
+    bridge = Bridge.of<N>(context)!;
+
     for (var element in binds) {
       bridge._registerObserver(element, this);
     }
-    super.initState();
   }
 
   @override
