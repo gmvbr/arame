@@ -177,11 +177,14 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
   @override
   void initState() {
     super.initState();
-    bridge = Bridge.of<N>(context)!;
 
-    for (var element in binds) {
-      bridge._registerObserver(element, this);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      bridge = Bridge.of<N>(context)!;
+
+      for (var element in binds) {
+        bridge._registerObserver(element, this);
+      }
+    });
   }
 
   @override
