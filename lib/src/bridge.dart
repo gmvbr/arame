@@ -72,7 +72,7 @@ class _BridgeState<N> extends State<Bridge<N>> {
   void dispose() {
     if (widget.services != null) {
       for (BridgeService<N> service in widget.services!) {
-        registerService(service);
+        unregisterService(service);
       }
     }
     _bridgeContext.dispose();
@@ -169,7 +169,7 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
     implements BridgeObserver<N> {
   List<N> get binds => [];
 
-  late final BridgeContext bridge;
+  BridgeContext? bridge;
 
   @override
   void message(N topic, args) {}
@@ -182,7 +182,7 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
       bridge = Bridge.of<N>(context)!;
 
       for (var element in binds) {
-        bridge._registerObserver(element, this);
+        bridge?._registerObserver(element, this);
       }
     });
   }
@@ -190,8 +190,9 @@ abstract class BridgeState<T extends StatefulWidget, N> extends State<T>
   @override
   void dispose() {
     for (var element in binds) {
-      bridge._unregisterObserver(element, this);
+      bridge?._unregisterObserver(element, this);
     }
+    bridge = null;
     super.dispose();
   }
 }
